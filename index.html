@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Sharing</title>
+</head>
+
+<body>
+    <h1>Screen Sharing and Streaming</h1>
+
+    <div>
+        <button id="startStreaming">Start Screen Sharing</button>
+        <br/>
+        <video id="remoteStream" style="max-width: 100%" autoplay playsinline controls></video>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('startStreaming');
+        const remoteStream = document.getElementById('remoteStream');
+        const mimeType = 'video/webm; codecs="vp9"';
+
+        // Start sharing screen and sending stream to /live
+        startBtn.addEventListener('click', async () => {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            const liveSocket = new WebSocket('ws://localhost:3000/live');
+            const [videoTrack] = stream.getVideoTracks();
+
+            const mediaRecorder = new MediaRecorder(stream);
+            console.log(mediaRecorder.mimeType);
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    liveSocket.send(event.data);
+                }
+            };
+            mediaRecorder.start(100); // Send data every 100ms
+
+            liveSocket.onclose = () => {
+                mediaRecorder.stop();
+            };
+        });
+
+        // Receive the stream from /stream
+        const streamSocket = new WebSocket('ws://localhost:3000/stream');
+        const mediaSource = new MediaSource();
+        remoteStream.src = URL.createObjectURL(mediaSource);
+        streamSocket.onopen = () => console.log('socket open');
+
+        mediaSource.addEventListener('sourceopen', () => {
+            const sourceBuffer = mediaSource.addSourceBuffer(mimeType);
+            streamSocket.onmessage = async (event) => {
+                const buffer = await event.data.arrayBuffer();
+                console.log(buffer);
+                
+
+                sourceBuffer.appendBuffer(buffer);
+            };
+        });
+    </script>
+</body>
+
+</html>
