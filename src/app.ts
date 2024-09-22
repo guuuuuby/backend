@@ -47,3 +47,5 @@ export const app = new Elysia()
         open: (ws) => void ws.subscribe(`live/${ws.data.params.sessionId}`),
       })
   );
+
+export type App = typeof app;
