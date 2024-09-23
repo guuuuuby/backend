@@ -1,18 +1,22 @@
 import Elysia, { t } from 'elysia';
 import { createSession, deleteSession, getSession } from './sessions';
 
+const m: Partial<Record<string, string>> = {};
+
 export const app = new Elysia()
   .get('/', () => 'h')
   .ws('accept', {
-    params: t.Object({ id: t.String() }),
     response: t.Union([t.Object({ id: t.String() }), t.Object({ event: t.Literal('disconnect') })]),
     async open(ws) {
       const session = await createSession();
+      m[ws.id] = session.id;
       ws.data.params ??= { id: session.id };
       ws.send({ id: session.id });
     },
     async close(ws) {
-      const session = await getSession(ws.data.params.id);
+      const sessionId = m[ws.id];
+      if (!sessionId) return;
+      const session = await getSession(sessionId);
       if (!session) return;
       ws.publish(`disconnect/${session.id}`, { event: 'disconnect' });
       await deleteSession(ws.id);
