@@ -4,13 +4,15 @@ import { createSession, deleteSession, getSession } from './sessions';
 export const app = new Elysia()
   .get('/', () => 'h')
   .ws('accept', {
+    params: t.Object({ id: t.String() }),
     response: t.Union([t.Object({ id: t.String() }), t.Object({ event: t.Literal('disconnect') })]),
     async open(ws) {
-      const session = await createSession(ws.id);
+      const session = await createSession();
+      ws.data.params ??= { id: session.id };
       ws.send({ id: session.id });
     },
     async close(ws) {
-      const session = await getSession(ws.id);
+      const session = await getSession(ws.data.params.id);
       if (!session) return;
       ws.publish(`disconnect/${session.id}`, { event: 'disconnect' });
       await deleteSession(ws.id);

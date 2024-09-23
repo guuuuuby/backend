@@ -8,9 +8,10 @@ export async function getSession(key: string): Promise<Session | null> {
   return map[key] ?? null;
 }
 
-export async function createSession(key: string): Promise<Session> {
-  const session: Session = { id: crypto.randomUUID() };
-  map[key] = session;
+export async function createSession(): Promise<Session> {
+  const id = crypto.randomUUID();
+  const session: Session = { id };
+  map[id] = session;
   return session;
 }
 
