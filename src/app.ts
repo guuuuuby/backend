@@ -12,7 +12,7 @@ export const app = new Elysia()
     async close(ws) {
       const session = await getSession(ws.id);
       if (!session) return;
-      ws.publish(`disconnect/${session.id}`);
+      ws.publish(`disconnect/${session.id}`, { event: 'disconnect' });
       await deleteSession(ws.id);
     },
   })
