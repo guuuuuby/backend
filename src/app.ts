@@ -12,6 +12,7 @@ export const app = new Elysia()
       m[ws.id] = session.id;
       ws.data.params ??= { id: session.id };
       ws.send({ id: session.id });
+      console.log('accept', session.id);
     },
     async close(ws) {
       const sessionId = m[ws.id];
@@ -19,7 +20,8 @@ export const app = new Elysia()
       const session = await getSession(sessionId);
       if (!session) return;
       ws.publish(`disconnect/${session.id}`, { event: 'disconnect' });
-      await deleteSession(ws.id);
+      await deleteSession(session.id);
+      console.log('end accept', session.id);
     },
   })
   .ws('join/:sessionId', {
@@ -34,24 +36,6 @@ export const app = new Elysia()
 
       ws.subscribe(`disconnect/${session.id}`);
     },
-  })
-  .group('stream/:sessionId', (group) =>
-    group
-      .ws('/live', {
-        async message(ws, message) {
-          const session = await getSession(ws.data.params.sessionId);
-
-          if (!session) {
-            ws.close();
-            return;
-          }
-
-          ws.publish(`live/${session.id}`, message);
-        },
-      })
-      .ws('/', {
-        open: (ws) => void ws.subscribe(`live/${ws.data.params.sessionId}`),
-      })
-  );
+  });
 
 export type App = typeof app;
