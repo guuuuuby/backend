@@ -47,9 +47,8 @@ export async function getSession(key: string): Promise<Session | null> {
 }
 
 export async function createSession({ ls }: { ls: LS }): Promise<Session> {
-  const id = crypto.randomUUID();
   const session = new Session(ls);
-  map[id] = session;
+  map[session.id] = session;
   return session;
 }
 
