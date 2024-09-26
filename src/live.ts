@@ -1,14 +1,22 @@
-Bun.serve<{ id: string }>({
+interface WSData {
+  readonly id: string;
+  readonly willStream: boolean;
+}
+
+Bun.serve<WSData>({
   port: 8001,
   fetch(request, server) {
     server.upgrade(request, {
-      data: new URL(request.url).pathname.slice(1),
+      data: {
+        id: new URL(request.url).pathname.slice(1),
+        willStream: request.headers.get('X-Will-Stream') === 'true',
+      } satisfies WSData,
     });
   },
   websocket: {
     open(ws) {
-      console.log('open');
-      
+      if (ws.data.willStream) return;
+
       ws.subscribe(`live/${ws.data.id}`);
     },
     message(ws, message) {
