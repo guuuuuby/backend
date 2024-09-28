@@ -71,7 +71,7 @@ export const app = new Elysia()
       ws.subscribe(`disconnect/${session.id}`);
     },
   })
-  .get(
+  .post(
     'ls',
     async ({ body: { url, sessionId } }) => {
       const session = await getSession(sessionId);
