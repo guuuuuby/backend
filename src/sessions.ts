@@ -1,42 +1,48 @@
-import type { FSObject } from './types';
+type OP<P = any> = (id: string, p: P) => void;
+type LS = OP<string>;
+type MouseClick = OP<{ x: number, y: number }>;
 
-export interface Session {
-  readonly id: string;
-  ls(url: string): Promise<FSObject[]>;
+interface OPs {
+  ls: LS;
+  click: MouseClick;
 }
 
-type LS = (id: string, url: string) => void;
-
 export class Session implements Session {
+  static readonly REQUEST_TIMEOUT = 30_000;
+
   readonly id: string = crypto.randomUUID();
-  readonly #ls: LS;
-  readonly #fsRequests: Record<string, (response: FSObject[]) => void> = Object.create(null);
+  readonly #ops: OPs;
+  readonly #requests: Record<string, (response: any) => void> = Object.create(null);
 
-  constructor(ls: LS) {
-    this.#ls = ls;
+  constructor(ops: OPs) {
+    this.#ops = ops;
   }
 
-  resolveRequest(id: string, response: FSObject[]) {
-    this.#fsRequests[id](response);
+  resolveRequest(id: string, response: any) {
+    this.#requests[id](response);
   }
 
-  ls(url: string): Promise<FSObject[]> {
-    return new Promise((resolve, reject) => {
+  call<R, O extends keyof OPs>(op: O, arg: Parameters<OPs[O]>[1]): Promise<R> {
+    return new Promise<R>((resolve, reject) => {
       const requestId = crypto.randomUUID();
 
       const timeout = setTimeout(() => {
         reject();
-        delete this.#fsRequests[requestId];
-      }, 30_000);
+        delete this.#requests[requestId];
+      }, Session.REQUEST_TIMEOUT);
 
-      this.#fsRequests[requestId] = (response) => {
+      this.#requests[requestId] = (response) => {
         clearTimeout(timeout);
         resolve(response);
-        delete this.#fsRequests[requestId];
+        delete this.#requests[requestId];
       };
 
-      this.#ls(requestId, url);
+      this.#ops[op](requestId, arg as any);
     });
+  }
+
+  callRaw<O extends keyof OPs>(op: O, arg: Parameters<OPs[O]>[1]) {
+    this.#ops[op](crypto.randomUUID(), arg as any);
   }
 }
 
@@ -46,8 +52,8 @@ export async function getSession(key: string): Promise<Session | null> {
   return map[key] ?? null;
 }
 
-export async function createSession({ ls }: { ls: LS }): Promise<Session> {
-  const session = new Session(ls);
+export async function createSession(ops: OPs): Promise<Session> {
+  const session = new Session(ops);
   map[session.id] = session;
   return session;
 }

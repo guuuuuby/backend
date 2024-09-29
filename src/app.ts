@@ -1,6 +1,6 @@
 import Elysia, { error, t } from 'elysia';
 import { createSession, deleteSession, getSession } from './sessions';
-import { FSObject } from './types';
+import { FSObject, Point2D } from './types';
 
 const m: Partial<Record<string, string>> = {};
 
@@ -18,6 +18,11 @@ export const app = new Elysia()
         path: t.String(),
         contents: t.Array(FSObject()),
       }),
+      t.Object({
+        requestId: t.String(),
+        request: t.Literal('mouseClick'),
+        point: Point2D(),
+      }),
     ]),
     body: t.Object({
       requestId: t.String(),
@@ -28,6 +33,7 @@ export const app = new Elysia()
     async open(ws) {
       const session = await createSession({
         ls: (id, url) => ws.send({ requestId: id, request: 'ls', path: url }),
+        click: (id, point) => ws.send({ requestId: id, request: 'mouseClick', point }),
       });
       m[ws.id] = session.id;
       ws.data.params ??= { id: session.id };
@@ -78,7 +84,7 @@ export const app = new Elysia()
 
       if (!session) throw error('Not Found');
 
-      return await session.ls(url);
+      return await session.call('ls', url);
     },
     {
       body: t.Object({
@@ -86,6 +92,22 @@ export const app = new Elysia()
         url: t.String(),
       }),
       response: t.Array(FSObject()),
+    }
+  )
+  .post(
+    'click',
+    async ({ body: { point, sessionId } }) => {
+      const session = await getSession(sessionId);
+
+      if (!session) throw error('Not Found');
+
+      session.callRaw('click', point);
+    },
+    {
+      body: t.Object({
+        sessionId: t.String(),
+        point: Point2D(),
+      }),
     }
   );
 

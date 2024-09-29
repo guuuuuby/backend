@@ -17,6 +17,8 @@ export const Folder = () =>
 
 export const FSObject = () => t.Union([File(), Folder()]);
 
+export const Point2D = () => t.Object({ x: t.Number(), y: t.Number() });
+
 export type FSObject = Resolve<typeof FSObject>;
 export type FSFile = Resolve<typeof File>;
 export type FSFolder = Resolve<typeof Folder>;
