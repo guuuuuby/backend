@@ -1,12 +1,20 @@
 import Elysia, { error, t } from 'elysia';
 import { createSession, deleteSession, getSession } from './sessions';
 import { FSObject, Point2D } from './types';
+import staticPlugin from '@elysiajs/static';
 
 const m: Partial<Record<string, string>> = {};
 
 export type * from './types';
 
 export const app = new Elysia()
+  .use(
+    staticPlugin({
+      prefix: '/',
+      assets: 'static',
+      indexHTML: true,
+    })
+  )
   .ws('accept', {
     response: t.Union([
       t.Object({ id: t.String() }),
@@ -34,7 +42,8 @@ export const app = new Elysia()
     async open(ws) {
       const session = await createSession({
         ls: (id, url) => ws.send({ requestId: id, request: 'ls', path: url }),
-        click: (id, { aux, point }) => ws.send({ requestId: id, request: 'mouseClick', aux, point }),
+        click: (id, { aux, point }) =>
+          ws.send({ requestId: id, request: 'mouseClick', aux, point }),
       });
       m[ws.id] = session.id;
       ws.data.params ??= { id: session.id };
