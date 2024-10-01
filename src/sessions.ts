@@ -1,6 +1,8 @@
+import type { Point2D } from './types';
+
 type OP<P = any> = (id: string, p: P) => void;
 type LS = OP<string>;
-type MouseClick = OP<{ x: number, y: number }>;
+type MouseClick = OP<{ aux: boolean; point: Point2D }>;
 
 interface OPs {
   ls: LS;

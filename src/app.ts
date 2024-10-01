@@ -21,6 +21,7 @@ export const app = new Elysia()
       t.Object({
         requestId: t.String(),
         request: t.Literal('mouseClick'),
+        aux: t.Boolean(),
         point: Point2D(),
       }),
     ]),
@@ -33,7 +34,7 @@ export const app = new Elysia()
     async open(ws) {
       const session = await createSession({
         ls: (id, url) => ws.send({ requestId: id, request: 'ls', path: url }),
-        click: (id, point) => ws.send({ requestId: id, request: 'mouseClick', point }),
+        click: (id, { aux, point }) => ws.send({ requestId: id, request: 'mouseClick', aux, point }),
       });
       m[ws.id] = session.id;
       ws.data.params ??= { id: session.id };
@@ -96,16 +97,17 @@ export const app = new Elysia()
   )
   .post(
     'click',
-    async ({ body: { point, sessionId } }) => {
+    async ({ body: { sessionId, ...calldata } }) => {
       const session = await getSession(sessionId);
 
       if (!session) throw error('Not Found');
 
-      session.callRaw('click', point);
+      session.callRaw('click', calldata);
     },
     {
       body: t.Object({
         sessionId: t.String(),
+        aux: t.Boolean(),
         point: Point2D(),
       }),
     }
