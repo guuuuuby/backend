@@ -19,12 +19,15 @@ export const FSObject = () => t.Union([File(), Folder()]);
 
 export const Point2D = () => t.Object({ x: t.Number(), y: t.Number() });
 
-export const KeypressEvent = () => t.Object({
-  action: t.Union([ t.Literal('down'), t.Literal('up') ]),
-  key: t.String(),
-  keyCode: t.String(),
-  modifiers: t.Array(t.Union([ t.Literal('shift'), t.Literal('control'), t.Literal('meta') ]))
-})
+export const KeypressEvent = () =>
+  t.Object({
+    action: t.Union([t.Literal('down'), t.Literal('up')]),
+    key: t.String(),
+    keyCode: t.String(),
+    modifiers: t.Array(
+      t.Union([t.Literal('shift'), t.Literal('control'), t.Literal('meta'), t.Literal('alt')])
+    ),
+  });
 
 export type FSObject = Resolve<typeof FSObject>;
 export type FSFile = Resolve<typeof File>;
