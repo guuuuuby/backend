@@ -1,6 +1,6 @@
 import Elysia, { error, t } from 'elysia';
 import { createSession, deleteSession, getSession } from './sessions';
-import { FSObject, Point2D } from './types';
+import { FSObject, KeypressEvent, Point2D } from './types';
 import staticPlugin from '@elysiajs/static';
 
 const m: Partial<Record<string, string>> = {};
@@ -32,6 +32,11 @@ export const app = new Elysia()
         aux: t.Boolean(),
         point: Point2D(),
       }),
+      t.Object({
+        requestId: t.String(),
+        request: t.Literal('keypress'),
+        event: KeypressEvent(),
+      }),
     ]),
     body: t.Object({
       requestId: t.String(),
@@ -44,6 +49,7 @@ export const app = new Elysia()
         ls: (id, url) => ws.send({ requestId: id, request: 'ls', path: url }),
         click: (id, { aux, point }) =>
           ws.send({ requestId: id, request: 'mouseClick', aux, point }),
+        keypress: (id, event) => ws.send({ requestId: id, request: 'keypress', event }),
       });
       m[ws.id] = session.id;
       ws.data.params ??= { id: session.id };
@@ -120,6 +126,17 @@ export const app = new Elysia()
         point: Point2D(),
       }),
     }
+  )
+  .post(
+    'keypress',
+    async ({ body: { sessionId, event } }) => {
+      const session = await getSession(sessionId);
+
+      if (!session) throw error('Not Found');
+
+      session.callRaw('keypress', event);
+    },
+    { body: t.Object({ sessionId: t.String(), event: KeypressEvent() }) }
   );
 
 export type App = typeof app;

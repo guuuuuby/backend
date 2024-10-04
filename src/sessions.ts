@@ -1,12 +1,14 @@
-import type { Point2D } from './types';
+import type { KeypressEvent, Point2D } from './types';
 
 type OP<P = any> = (id: string, p: P) => void;
 type LS = OP<string>;
 type MouseClick = OP<{ aux: boolean; point: Point2D }>;
+type Keypress = OP<KeypressEvent>;
 
 interface OPs {
   ls: LS;
   click: MouseClick;
+  keypress: Keypress;
 }
 
 export class Session implements Session {

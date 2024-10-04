@@ -22,7 +22,7 @@ Bun.serve<WSData>({
     message(ws, message) {
       if (typeof message === 'string') return;
 
-      ws.publishBinary(`live/${ws.data.id}`, message);
+      ws.publishBinary(`live/${ws.data.id}`, new Uint8Array(message));
     },
   },
 });
