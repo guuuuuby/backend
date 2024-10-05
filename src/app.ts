@@ -42,6 +42,11 @@ export const app = new Elysia()
         request: t.Literal('rm'),
         path: t.String(),
       }),
+      t.Object({
+        requestId: t.String(),
+        request: t.Literal('mv'),
+        path: t.String(),
+      }),
     ]),
     body: t.Union([
       t.Object({
@@ -55,6 +60,11 @@ export const app = new Elysia()
         event: t.Literal('rm'),
         success: t.Boolean(),
       }),
+      t.Object({
+        requestId: t.String(),
+        event: t.Literal('mv'),
+        success: t.Boolean(),
+      }),
     ]),
     async open(ws) {
       const session = await createSession({
@@ -63,6 +73,7 @@ export const app = new Elysia()
           ws.send({ requestId: id, request: 'mouseClick', aux, point }),
         keypress: (id, event) => ws.send({ requestId: id, request: 'keypress', event }),
         rm: (id, path) => ws.send({ requestId: id, request: 'rm', path }),
+        mv: (id, path) => ws.send({ requestId: id, request: 'mv', path }),
       });
       m[ws.id] = session.id;
       ws.data.params ??= { id: session.id };
@@ -87,6 +98,8 @@ export const app = new Elysia()
       if (message.event === 'ls') {
         session.resolveRequest(message.requestId, message.contents);
       } else if (message.event === 'rm') {
+        session.resolveRequest(message.requestId, message.success);
+      } else if (message.event === 'mv') {
         session.resolveRequest(message.requestId, message.success);
       }
     },
@@ -155,6 +168,23 @@ export const app = new Elysia()
   )
   .delete(
     'rm',
+    async ({ body: { sessionId, url } }) => {
+      const session = await getSession(sessionId);
+
+      if (!session) throw error('Not Found');
+
+      return await session.call('rm', url);
+    },
+    {
+      body: t.Object({
+        sessionId: t.String(),
+        url: t.String(),
+      }),
+      response: t.Boolean(),
+    }
+  )
+  .put(
+    'mv',
     async ({ body: { sessionId, url } }) => {
       const session = await getSession(sessionId);
 

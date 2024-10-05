@@ -5,10 +5,12 @@ type LS = OP<string>;
 type MouseClick = OP<{ aux: boolean; point: Point2D }>;
 type Keypress = OP<KeypressEvent>;
 type RM = OP<string>;
+type MV = OP<string>;
 
 interface OPs {
   ls: LS;
   rm: RM;
+  mv: MV;
   click: MouseClick;
   keypress: Keypress;
 }
