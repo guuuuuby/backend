@@ -45,11 +45,13 @@ export class Session implements Session {
         delete this.#requests[requestId];
       };
 
+      // @ts-ignore
       this.#ops[op].call(null, requestId, arg as any);
     });
   }
 
   callRaw<O extends keyof OPs>(op: O, arg: Parameters<OPs[O]>[1]) {
+    // @ts-ignore
     this.#ops[op].call(null, crypto.randomUUID(), arg as any);
   }
 }
