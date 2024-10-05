@@ -16,7 +16,7 @@ interface OPs {
 }
 
 export class Session implements Session {
-  static readonly REQUEST_TIMEOUT = 30_000;
+  static readonly REQUEST_TIMEOUT = 15_000;
 
   readonly id: string = crypto.randomUUID();
   readonly #ops: OPs;
@@ -35,7 +35,7 @@ export class Session implements Session {
       const requestId = crypto.randomUUID();
 
       const timeout = setTimeout(() => {
-        reject();
+        reject('Час очікування відповіді вичерпано');
         delete this.#requests[requestId];
       }, Session.REQUEST_TIMEOUT);
 
