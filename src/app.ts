@@ -37,19 +37,32 @@ export const app = new Elysia()
         request: t.Literal('keypress'),
         event: KeypressEvent(),
       }),
+      t.Object({
+        requestId: t.String(),
+        request: t.Literal('rm'),
+        path: t.String(),
+      }),
     ]),
-    body: t.Object({
-      requestId: t.String(),
-      event: t.Literal('ls'),
-      path: t.String(),
-      contents: t.Array(FSObject()),
-    }),
+    body: t.Union([
+      t.Object({
+        requestId: t.String(),
+        event: t.Literal('ls'),
+        path: t.String(),
+        contents: t.Array(FSObject()),
+      }),
+      t.Object({
+        requestId: t.String(),
+        event: t.Literal('rm'),
+        success: t.Boolean(),
+      }),
+    ]),
     async open(ws) {
       const session = await createSession({
         ls: (id, url) => ws.send({ requestId: id, request: 'ls', path: url }),
         click: (id, { aux, point }) =>
           ws.send({ requestId: id, request: 'mouseClick', aux, point }),
         keypress: (id, event) => ws.send({ requestId: id, request: 'keypress', event }),
+        rm: (id, path) => ws.send({ requestId: id, request: 'rm', path }),
       });
       m[ws.id] = session.id;
       ws.data.params ??= { id: session.id };
@@ -69,10 +82,12 @@ export const app = new Elysia()
       const sessionId = m[ws.id];
       if (!sessionId) return;
       const session = await getSession(sessionId);
-      if (!session) return;
+      if (!session || 'event' in message === false) return;
 
       if (message.event === 'ls') {
         session.resolveRequest(message.requestId, message.contents);
+      } else if (message.event === 'rm') {
+        session.resolveRequest(message.requestId, message.success);
       }
     },
   })
@@ -137,6 +152,23 @@ export const app = new Elysia()
       session.callRaw('keypress', event);
     },
     { body: t.Object({ sessionId: t.String(), event: KeypressEvent() }) }
+  )
+  .delete(
+    'rm',
+    async ({ body: { sessionId, url } }) => {
+      const session = await getSession(sessionId);
+
+      if (!session) throw error('Not Found');
+
+      return await session.call('rm', url);
+    },
+    {
+      body: t.Object({
+        sessionId: t.String(),
+        url: t.String(),
+      }),
+      response: t.Boolean(),
+    }
   );
 
 export type App = typeof app;

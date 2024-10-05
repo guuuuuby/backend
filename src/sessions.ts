@@ -4,9 +4,11 @@ type OP<P = any> = (id: string, p: P) => void;
 type LS = OP<string>;
 type MouseClick = OP<{ aux: boolean; point: Point2D }>;
 type Keypress = OP<KeypressEvent>;
+type RM = OP<string>;
 
 interface OPs {
   ls: LS;
+  rm: RM;
   click: MouseClick;
   keypress: Keypress;
 }
@@ -41,12 +43,12 @@ export class Session implements Session {
         delete this.#requests[requestId];
       };
 
-      this.#ops[op](requestId, arg as any);
+      this.#ops[op].call(null, requestId, arg as any);
     });
   }
 
   callRaw<O extends keyof OPs>(op: O, arg: Parameters<OPs[O]>[1]) {
-    this.#ops[op](crypto.randomUUID(), arg as any);
+    this.#ops[op].call(null, crypto.randomUUID(), arg as any);
   }
 }
 
