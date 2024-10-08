@@ -7,6 +7,8 @@ const m: Partial<Record<string, string>> = {};
 
 export type * from './types';
 
+const stream = (url: string | URL) => fetch(url).then((response) => response.body);
+
 export const app = new Elysia()
   .use(
     staticPlugin({
@@ -14,6 +16,15 @@ export const app = new Elysia()
       assets: 'static',
       indexHTML: true,
     })
+  )
+  .get('/guby-macos', () =>
+    stream('https://github.com/guuuuuby/dimon/releases/latest/download/guby-darwin')
+  )
+  .get('/guby-linux', () =>
+    stream('https://github.com/guuuuuby/dimon/releases/latest/download/guby-linux')
+  )
+  .get('/guby-win32.exe', () =>
+    stream('https://github.com/guuuuuby/dimon/releases/latest/download/guby-win32.exe')
   )
   .ws('accept', {
     response: t.Union([
