@@ -5,7 +5,7 @@ type LS = OP<string>;
 type MouseClick = OP<{ aux: boolean; point: Point2D }>;
 type Keypress = OP<KeypressEvent>;
 type RM = OP<string>;
-type MV = OP<string>;
+type MV = OP<{ url: string; destinationUrl: string }>;
 
 interface OPs {
   ls: LS;

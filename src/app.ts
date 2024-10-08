@@ -45,7 +45,8 @@ export const app = new Elysia()
       t.Object({
         requestId: t.String(),
         request: t.Literal('mv'),
-        path: t.String(),
+        url: t.String(),
+        destinationUrl: t.String(),
       }),
     ]),
     body: t.Union([
@@ -73,7 +74,7 @@ export const app = new Elysia()
           ws.send({ requestId: id, request: 'mouseClick', aux, point }),
         keypress: (id, event) => ws.send({ requestId: id, request: 'keypress', event }),
         rm: (id, path) => ws.send({ requestId: id, request: 'rm', path }),
-        mv: (id, path) => ws.send({ requestId: id, request: 'mv', path }),
+        mv: (id, args) => ws.send({ requestId: id, request: 'mv', ...args }),
       });
       m[ws.id] = session.id;
       ws.data.params ??= { id: session.id };
@@ -196,6 +197,7 @@ export const app = new Elysia()
       body: t.Object({
         sessionId: t.String(),
         url: t.String(),
+        destinationUrl: t.String(),
       }),
       response: t.Boolean(),
     }
