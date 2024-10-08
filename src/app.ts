@@ -186,12 +186,12 @@ export const app = new Elysia()
   )
   .put(
     'mv',
-    async ({ body: { sessionId, url } }) => {
+    async ({ body: { sessionId, ...args } }) => {
       const session = await getSession(sessionId);
 
       if (!session) throw error('Not Found');
 
-      return await session.call('rm', url);
+      return await session.call('mv', args);
     },
     {
       body: t.Object({
