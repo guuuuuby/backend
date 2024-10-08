@@ -7,7 +7,12 @@ const m: Partial<Record<string, string>> = {};
 
 export type * from './types';
 
-const stream = (url: string | URL) => fetch(url).then((response) => response.body);
+const stream = async (url: string | URL) =>
+  new Response(await fetch(url).then((response) => response.body), {
+    headers: {
+      'Content-Type': 'application/octet-stream',
+    },
+  });
 
 export const app = new Elysia()
   .use(
