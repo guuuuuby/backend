@@ -245,6 +245,7 @@ export const app = new Elysia()
       return new Response(stream, {
         headers: {
           'Content-Length': contentLength.toString(),
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
         },
       });
     },
