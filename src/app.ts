@@ -2,6 +2,7 @@ import Elysia, { error, t } from 'elysia';
 import { createSession, deleteSession, getSession } from './sessions';
 import { FSObject, KeypressEvent, Point2D } from './types';
 import staticPlugin from '@elysiajs/static';
+import { downloadFromWS } from './downloadFromWS';
 
 const m: Partial<Record<string, string>> = {};
 
@@ -67,6 +68,11 @@ export const app = new Elysia()
         url: t.String(),
         destinationUrl: t.String(),
       }),
+      t.Object({
+        requestId: t.String(),
+        request: t.Literal('download'),
+        url: t.String(),
+      }),
     ]),
     body: t.Union([
       t.Object({
@@ -94,6 +100,7 @@ export const app = new Elysia()
         keypress: (id, event) => ws.send({ requestId: id, request: 'keypress', event }),
         rm: (id, path) => ws.send({ requestId: id, request: 'rm', path }),
         mv: (id, args) => ws.send({ requestId: id, request: 'mv', ...args }),
+        download: (id, url) => ws.send({ requestId: id, request: 'download', url }),
       });
       m[ws.id] = session.id;
       ws.data.params ??= { id: session.id };
@@ -219,6 +226,30 @@ export const app = new Elysia()
         destinationUrl: t.String(),
       }),
       response: t.Boolean(),
+    }
+  )
+  .get(
+    'download/:sessionId/*',
+    async ({ params: { sessionId }, query: { url } }) => {
+      const session = await getSession(sessionId);
+
+      if (!session) throw error('Not Found');
+
+      const requestId = crypto.randomUUID();
+      const channel = encodeURIComponent(`${requestId}/${url}`);
+      const socketUrl = `ws://localhost:8001/?channel=${channel}&willStream=false`;
+      const { stream, contentLength } = await downloadFromWS(socketUrl);
+
+      session.callRaw('download', url, requestId);
+
+      return new Response(stream, {
+        headers: {
+          'Content-Length': contentLength.toString(),
+        },
+      });
+    },
+    {
+      query: t.Object({ url: t.String() }),
     }
   );
 

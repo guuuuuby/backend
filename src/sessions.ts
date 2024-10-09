@@ -6,6 +6,7 @@ type MouseClick = OP<{ aux: boolean; point: Point2D }>;
 type Keypress = OP<KeypressEvent>;
 type RM = OP<string>;
 type MV = OP<{ url: string; destinationUrl: string }>;
+type Download = OP<string>;
 
 interface OPs {
   ls: LS;
@@ -13,6 +14,7 @@ interface OPs {
   mv: MV;
   click: MouseClick;
   keypress: Keypress;
+  download: Download;
 }
 
 export class Session implements Session {
@@ -50,9 +52,9 @@ export class Session implements Session {
     });
   }
 
-  callRaw<O extends keyof OPs>(op: O, arg: Parameters<OPs[O]>[1]) {
+  callRaw<O extends keyof OPs>(op: O, arg: Parameters<OPs[O]>[1], requestId = crypto.randomUUID()) {
     // @ts-ignore
-    this.#ops[op].call(null, crypto.randomUUID(), arg as any);
+    this.#ops[op].call(null, requestId, arg as any);
   }
 }
 
