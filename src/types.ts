@@ -29,8 +29,15 @@ export const KeypressEvent = () =>
     ),
   });
 
+export const TerminalEvent = () => t.Object({
+  action: t.Union([t.Literal('open'), t.Literal('sync'), t.Literal('close')]),
+  columns: t.Optional(t.Number()),
+  lines: t.Optional(t.Number()),
+});
+
 export type FSObject = Resolve<typeof FSObject>;
 export type FSFile = Resolve<typeof File>;
 export type FSFolder = Resolve<typeof Folder>;
 export type Point2D = Resolve<typeof Point2D>;
 export type KeypressEvent = Resolve<typeof KeypressEvent>;
+export type TerminalEvent = Resolve<typeof TerminalEvent>;

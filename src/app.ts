@@ -1,6 +1,6 @@
 import Elysia, { error, t } from 'elysia';
 import { createSession, deleteSession, getSession } from './sessions';
-import { FSObject, KeypressEvent, Point2D } from './types';
+import { FSObject, KeypressEvent, Point2D, TerminalEvent } from './types';
 import staticPlugin from '@elysiajs/static';
 import { downloadFromWS } from './downloadFromWS';
 
@@ -73,6 +73,11 @@ export const app = new Elysia()
         request: t.Literal('download'),
         url: t.String(),
       }),
+      t.Object({
+        requestId: t.String(),
+        request: t.Literal('terminal'),
+        event: TerminalEvent(),
+      }),
     ]),
     body: t.Union([
       t.Object({
@@ -101,6 +106,7 @@ export const app = new Elysia()
         rm: (id, path) => ws.send({ requestId: id, request: 'rm', path }),
         mv: (id, args) => ws.send({ requestId: id, request: 'mv', ...args }),
         download: (id, url) => ws.send({ requestId: id, request: 'download', url }),
+        terminal: (id, event) => ws.send({ requestId: id, request: 'terminal', event }),
       });
       m[ws.id] = session.id;
       ws.data.params ??= { id: session.id };
@@ -245,12 +251,28 @@ export const app = new Elysia()
       return new Response(stream, {
         headers: {
           'Content-Length': contentLength.toString(),
-          'Cache-Control': 'no-cache, no-store, must-revalidate'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
       });
     },
     {
       query: t.Object({ url: t.String() }),
+    }
+  )
+  .put(
+    'terminal',
+    async ({ body: { sessionId, event } }) => {
+      const session = await getSession(sessionId);
+
+      if (!session) throw error('Not Found');
+
+      session.callRaw('terminal', event);
+    },
+    {
+      body: t.Object({
+        sessionId: t.String(),
+        event: TerminalEvent(),
+      }),
     }
   );
 

@@ -1,4 +1,4 @@
-import type { KeypressEvent, Point2D } from './types';
+import type { KeypressEvent, Point2D, TerminalEvent } from './types';
 
 type OP<P = any> = (id: string, p: P) => void;
 type LS = OP<string>;
@@ -7,6 +7,7 @@ type Keypress = OP<KeypressEvent>;
 type RM = OP<string>;
 type MV = OP<{ url: string; destinationUrl: string }>;
 type Download = OP<string>;
+type Terminal = OP<TerminalEvent>;
 
 interface OPs {
   ls: LS;
@@ -15,6 +16,7 @@ interface OPs {
   click: MouseClick;
   keypress: Keypress;
   download: Download;
+  terminal: Terminal;
 }
 
 export class Session implements Session {
