@@ -243,10 +243,9 @@ export const app = new Elysia()
 
       const requestId = crypto.randomUUID();
       const channel = encodeURIComponent(`${requestId}/${url}`);
-      const socketUrl = `ws://localhost:8001/?channel=${channel}&willStream=false`;
-      const { stream, contentLength } = await downloadFromWS(socketUrl);
-
+      const socketUrl = `ws://localhost:8001/${sessionId}?channel=${channel}&willStream=false`;
       session.callRaw('download', url, requestId);
+      const { stream, contentLength } = await downloadFromWS(socketUrl);
 
       return new Response(stream, {
         headers: {
