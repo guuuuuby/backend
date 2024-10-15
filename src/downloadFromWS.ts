@@ -15,7 +15,8 @@ export async function downloadFromWS(url: string | URL) {
         socket.addEventListener(
           'message',
           (event) => {
-            const contentLength = +new TextDecoder().decode(event.data);
+            const contentLength =
+              typeof event.data === 'string' ? +event.data : +new TextDecoder().decode(event.data);
 
             socket.addEventListener('message', (event) => {
               const data: ArrayBuffer = event.data;

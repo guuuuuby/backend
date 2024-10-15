@@ -26,9 +26,9 @@ Bun.serve<WSData>({
       ws.subscribe(`${ws.data.channel}/${ws.data.id}`);
     },
     message(ws, message) {
-      if (typeof message === 'string') return;
-
-      ws.publishBinary(`${ws.data.channel}/${ws.data.id}`, new Uint8Array(message));
+      const chunk = message instanceof Buffer ? new Uint8Array(message) : message;
+      
+      ws.publish(`${ws.data.channel}/${ws.data.id}`, chunk);
     },
   },
 });
