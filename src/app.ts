@@ -1,8 +1,8 @@
+import staticPlugin from '@elysiajs/static';
 import Elysia, { error, t } from 'elysia';
+import { downloadFromWS } from './downloadFromWS';
 import { createSession, deleteSession, getSession } from './sessions';
 import { FSObject, KeypressEvent, Point2D, TerminalEvent } from './types';
-import staticPlugin from '@elysiajs/static';
-import { downloadFromWS } from './downloadFromWS';
 
 const m: Partial<Record<string, string>> = {};
 
@@ -242,15 +242,16 @@ export const app = new Elysia()
       if (!session) throw error('Not Found');
 
       const requestId = crypto.randomUUID();
-      const channel = encodeURIComponent(`${requestId}/${url}`);
-      const socketUrl = `ws://localhost:8001/${sessionId}?channel=${channel}&willStream=false`;
+      const socketUrl = `ws://localhost:8001/${sessionId}?channel=${encodeURIComponent(requestId)}`;
+      const contentPromise = downloadFromWS(socketUrl);
       session.callRaw('download', url, requestId);
-      const { stream, contentLength } = await downloadFromWS(socketUrl);
+      const { stream, contentLength } = await contentPromise;
 
       return new Response(stream, {
         headers: {
           'Content-Length': contentLength.toString(),
           'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Content-Type': 'application/octet-stream',
         },
       });
     },

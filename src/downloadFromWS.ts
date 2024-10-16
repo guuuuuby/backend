@@ -24,6 +24,7 @@ export async function downloadFromWS(url: string | URL) {
               receivedBytes += data.byteLength;
 
               if (receivedBytes >= contentLength) {
+                controller.close();
                 socket.close();
               }
             });
@@ -33,7 +34,11 @@ export async function downloadFromWS(url: string | URL) {
           { once: true }
         );
 
-        socket.addEventListener('close', () => controller.close());
+        socket.addEventListener('close', () => {
+          try {
+            controller.close();
+          } catch {}
+        });
       },
       cancel() {
         socket.close();
