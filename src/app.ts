@@ -242,7 +242,10 @@ export const app = new Elysia()
       if (!session) throw error('Not Found');
 
       const requestId = crypto.randomUUID();
-      const socketUrl = `ws://localhost:8001/${sessionId}?channel=${encodeURIComponent(requestId)}`;
+      const socketUrl = new URL(
+        `/${sessionId}?channel=${encodeURIComponent(requestId)}`,
+        Bun.env.LIVE_BASE ?? 'ws://localhost:8001'
+      );
       const contentPromise = downloadFromWS(socketUrl);
       session.callRaw('download', url, requestId);
       const { stream, contentLength } = await contentPromise;

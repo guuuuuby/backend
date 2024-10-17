@@ -4,7 +4,7 @@ interface WSData {
 }
 
 Bun.serve<WSData>({
-  port: 8001,
+  port: Bun.env.LIVE_PORT ?? 8001,
   fetch(request, server) {
     const url = new URL(request.url);
 
