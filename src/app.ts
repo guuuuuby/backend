@@ -3,6 +3,7 @@ import Elysia, { error, t } from 'elysia';
 import { downloadFromWS } from './downloadFromWS';
 import { createSession, deleteSession, getSession } from './sessions';
 import { FSObject, KeypressEvent, Point2D, TerminalEvent } from './types';
+import { liveServer } from './live';
 
 const m: Partial<Record<string, string>> = {};
 
@@ -243,8 +244,8 @@ export const app = new Elysia()
 
       const requestId = crypto.randomUUID();
       const socketUrl = new URL(
-        `/${sessionId}?channel=${encodeURIComponent(requestId)}`,
-        Bun.env.LIVE_BASE ?? 'ws://localhost:8001'
+        `${sessionId}?channel=${encodeURIComponent(requestId)}`,
+        Bun.env.LIVE_BASE ?? liveServer.url
       );
       const contentPromise = downloadFromWS(socketUrl);
       session.callRaw('download', url, requestId);

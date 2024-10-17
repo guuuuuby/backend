@@ -3,7 +3,7 @@ interface WSData {
   readonly channel: string;
 }
 
-const server = Bun.serve<WSData>({
+export const liveServer = Bun.serve<WSData>({
   port: Bun.env.LIVE_PORT ?? 8001,
   fetch(request, server) {
     const url = new URL(request.url);
@@ -22,10 +22,10 @@ const server = Bun.serve<WSData>({
     },
     message(ws, message) {
       const chunk = message instanceof Buffer ? new Uint8Array(message) : message;
-      
+
       ws.publish(`${ws.data.channel}/${ws.data.id}`, chunk);
     },
   },
 });
 
-console.log(`Live server on ${server.url}`)
+console.log(`Live server on ${liveServer.url}`)
