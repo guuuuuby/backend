@@ -3,7 +3,7 @@ interface WSData {
   readonly channel: string;
 }
 
-Bun.serve<WSData>({
+const server = Bun.serve<WSData>({
   port: Bun.env.LIVE_PORT ?? 8001,
   fetch(request, server) {
     const url = new URL(request.url);
@@ -27,3 +27,5 @@ Bun.serve<WSData>({
     },
   },
 });
+
+console.log(`Live server on ${server.url}`)
