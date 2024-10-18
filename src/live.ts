@@ -7,10 +7,11 @@ export const liveServer = Bun.serve<WSData>({
   port: Bun.env.LIVE_PORT ?? 8001,
   fetch(request, server) {
     const url = new URL(request.url);
+    const sessionId = url.pathname.replace('live/', '').replace(/(?:^\/)|(?:\/$)/gi, '');
 
     server.upgrade(request, {
       data: {
-        id: new URL(request.url).pathname.slice(1),
+        id: sessionId,
         channel:
           request.headers.get('X-Stream-Channel') ?? url.searchParams.get('channel') ?? 'live',
       } satisfies WSData,
