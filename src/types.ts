@@ -7,12 +7,14 @@ export const File = () =>
     type: t.Literal('file'),
     name: t.String(),
     bytes: t.Number(),
+    createdAt: t.String(),
   });
 
 export const Folder = () =>
   t.Object({
     type: t.Literal('folder'),
     name: t.String(),
+    createdAt: t.String(),
   });
 
 export const FSObject = () => t.Union([File(), Folder()]);
@@ -29,11 +31,12 @@ export const KeypressEvent = () =>
     ),
   });
 
-export const TerminalEvent = () => t.Object({
-  action: t.Union([t.Literal('open'), t.Literal('sync'), t.Literal('close')]),
-  columns: t.Optional(t.Number()),
-  lines: t.Optional(t.Number()),
-});
+export const TerminalEvent = () =>
+  t.Object({
+    action: t.Union([t.Literal('open'), t.Literal('sync'), t.Literal('close')]),
+    columns: t.Optional(t.Number()),
+    lines: t.Optional(t.Number()),
+  });
 
 export type FSObject = Resolve<typeof FSObject>;
 export type FSFile = Resolve<typeof File>;
