@@ -113,6 +113,7 @@ export const app = new Elysia()
       ws.data.params ??= { id: session.id };
       ws.send({ id: session.id });
       ws.subscribe(`control/${session.id}`);
+      console.log('accept', session.id);
     },
     async close(ws) {
       const sessionId = m[ws.id];
